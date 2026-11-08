@@ -1,0 +1,130 @@
+---
+import Icon from './Icon.astro';
+import { profile } from '../data/site';
+import { localizePath, stripLang, useTranslations, type Lang } from '../i18n/ui';
+import { getPosts } from '../utils';
+
+interface Props {
+  lang: Lang;
+  switchHref: string;
+}
+const { lang, switchHref } = Astro.props;
+const t = useTranslations(lang);
+const hasPosts = (await getPosts(lang)).length > 0;
+
+const nav = [
+  { label: t('nav.about'), href: localizePath('/', lang) + '#about' },
+  { label: t('nav.experience'), href: localizePath('/', lang) + '#experience' },
+  { label: t('nav.projects'), href: localizePath('/projects', lang) },
+  ...(hasPosts ? [{ label: t('nav.blog'), href: localizePath('/blog', lang) }] : []),
+  { label: t('nav.contact'), href: localizePath('/', lang) + '#contact' },
+];
+
+const path = stripLang(Astro.url.pathname);
+const isActive = (href: string) => !href.includes('#') && path.startsWith(stripLang(href));
+const otherLabel = lang === 'es' ? 'EN' : 'ES';
+---
+
+<header
+  class="sticky top-0 z-40 border-b border-zinc-200/70 bg-white/80 backdrop-blur-md dark:border-zinc-800/70 dark:bg-zinc-950/80"
+>
+  <nav class="mx-auto flex h-16 max-w-5xl items-center justify-between px-4 sm:px-6" aria-label="Main">
+    <a href={localizePath('/', lang)} class="font-mono text-sm font-semibold text-zinc-900 dark:text-zinc-50">
+      <span class="text-accent-500">~/</span>{profile.name.split(' ')[0].toLowerCase()}
+    </a>
+
+    <div class="flex items-center gap-1">
+      <ul class="hidden items-center gap-1 md:flex">
+        {
+          nav.map((item) => (
+            <li>
+              <a
+                href={item.href}
+                class:list={[
+                  'rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:text-zinc-900 dark:hover:text-zinc-50',
+                  isActive(item.href) ? 'text-zinc-900 dark:text-zinc-50' : 'text-zinc-500 dark:text-zinc-400',
+                ]}
+                aria-current={isActive(item.href) ? 'page' : undefined}
+              >
+                {item.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+
+      <a
+        href={switchHref}
+        hreflang={lang === 'es' ? 'en' : 'es'}
+        lang={lang === 'es' ? 'en' : 'es'}
+        title={t('header.lang')}
+        aria-label={t('header.lang')}
+        class="rounded-lg px-2.5 py-2 font-mono text-xs font-semibold text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-50"
+      >
+        {otherLabel}
+      </a>
+
+      <button
+        id="theme-toggle"
+        type="button"
+        class="rounded-lg p-2 text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-50"
+        aria-label={t('header.theme')}
+      >
+        <Icon name="sun" class="hidden size-5 dark:block" />
+        <Icon name="moon" class="size-5 dark:hidden" />
+      </button>
+
+      <button
+        id="menu-toggle"
+        type="button"
+        class="rounded-lg p-2 text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 md:hidden dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-50"
+        aria-label={t('header.menu')}
+        aria-expanded="false"
+        aria-controls="mobile-menu"
+      >
+        <Icon name="menu" class="size-5" />
+      </button>
+    </div>
+  </nav>
+
+  <div id="mobile-menu" class="hidden border-t border-zinc-200 md:hidden dark:border-zinc-800">
+    <ul class="mx-auto max-w-5xl space-y-1 px-4 py-3">
+      {
+        nav.map((item) => (
+          <li>
+            <a
+              href={item.href}
+              class="block rounded-lg px-3 py-2 text-base font-medium text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
+            >
+              {item.label}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</header>
+
+<script>
+  function setupHeader() {
+    const themeBtn = document.getElementById('theme-toggle');
+    themeBtn?.addEventListener('click', () => {
+      const dark = document.documentElement.classList.toggle('dark');
+      localStorage.setItem('theme', dark ? 'dark' : 'light');
+    });
+
+    const menuBtn = document.getElementById('menu-toggle');
+    const menu = document.getElementById('mobile-menu');
+    menuBtn?.addEventListener('click', () => {
+      const open = menu?.classList.toggle('hidden') === false;
+      menuBtn.setAttribute('aria-expanded', String(open));
+    });
+    menu?.querySelectorAll('a').forEach((a) =>
+      a.addEventListener('click', () => {
+        menu.classList.add('hidden');
+        menuBtn?.setAttribute('aria-expanded', 'false');
+      }),
+    );
+  }
+  document.addEventListener('astro:page-load', setupHeader);
+</script>

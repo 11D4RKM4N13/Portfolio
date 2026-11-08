@@ -1,0 +1,66 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ProjectCard from '../ProjectCard.astro';
+import { useTranslations, type Lang } from '../../i18n/ui';
+import { getProjects } from '../../utils';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const projects = await getProjects(lang);
+const tags = [...new Set(projects.flatMap((p) => p.data.tags))].sort((a, b) => a.localeCompare(b));
+---
+
+<BaseLayout lang={lang} title={t('nav.projects')} description={t('projectsPage.description')}>
+  <section class="mx-auto max-w-5xl px-4 py-20 sm:px-6">
+    <p class="font-mono text-sm text-accent-600 dark:text-accent-400">{t('nav.projects')}</p>
+    <h1 class="mt-2 text-4xl font-bold tracking-tight sm:text-5xl">{t('projectsPage.title')}</h1>
+    <p class="mt-4 max-w-2xl text-lg">{t('projectsPage.intro')}</p>
+
+    <div class="mt-10 flex flex-wrap gap-2" id="filters" role="group" aria-label={t('projectsPage.filterLabel')}>
+      <button data-tag="" aria-pressed="true" class="filter-btn">{t('projectsPage.filterAll')}</button>
+      {tags.map((tag) => <button data-tag={tag} aria-pressed="false" class="filter-btn">{tag}</button>)}
+    </div>
+
+    <div class="mt-8 grid gap-6 sm:grid-cols-2" id="project-grid">
+      {
+        projects.map((p) => (
+          <div data-tags={p.data.tags.join('|')} class="grid">
+            <ProjectCard project={p} lang={lang} />
+          </div>
+        ))
+      }
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  @reference "../../styles/global.css";
+  .filter-btn {
+    @apply rounded-full border border-zinc-300 px-3 py-1 font-mono text-xs transition-colors hover:border-zinc-900 dark:border-zinc-700 dark:hover:border-zinc-50;
+  }
+  .filter-btn[aria-pressed='true'] {
+    @apply border-accent-600 bg-accent-600 text-white;
+  }
+  [hidden] {
+    display: none;
+  }
+</style>
+
+<script>
+  document.addEventListener('astro:page-load', () => {
+    const buttons = document.querySelectorAll<HTMLButtonElement>('#filters button');
+    const items = document.querySelectorAll<HTMLElement>('#project-grid > div');
+    buttons.forEach((btn) =>
+      btn.addEventListener('click', () => {
+        const tag = btn.dataset.tag;
+        buttons.forEach((b) => b.setAttribute('aria-pressed', String(b === btn)));
+        items.forEach((el) => {
+          el.hidden = !!tag && !el.dataset.tags?.split('|').includes(tag);
+        });
+      }),
+    );
+  });
+</script>

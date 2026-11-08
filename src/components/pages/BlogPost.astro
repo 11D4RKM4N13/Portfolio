@@ -1,0 +1,42 @@
+---
+import { render, type CollectionEntry } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Icon from '../Icon.astro';
+import Tag from '../Tag.astro';
+import { localizePath, useTranslations, type Lang } from '../../i18n/ui';
+import { formatDate, readingMinutes } from '../../utils';
+
+interface Props {
+  post: CollectionEntry<'blog'>;
+  lang: Lang;
+  alternatePath: string | null;
+}
+const { post, lang, alternatePath } = Astro.props;
+const t = useTranslations(lang);
+const { Content } = await render(post);
+const { title, description, date, tags } = post.data;
+---
+
+<BaseLayout lang={lang} title={title} description={description} type="article" alternatePath={alternatePath}>
+  <article class="mx-auto max-w-3xl px-4 py-20 sm:px-6">
+    <a
+      href={localizePath('/blog', lang)}
+      class="inline-flex items-center gap-2 text-sm text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-50"
+    >
+      <Icon name="arrow" class="size-4 rotate-180" />
+      {t('post.back')}
+    </a>
+    <header class="mt-8 border-b border-zinc-200 pb-8 dark:border-zinc-800">
+      <p class="font-mono text-sm text-zinc-500">
+        <time datetime={date.toISOString()}>{formatDate(date, lang)}</time> · {readingMinutes(post.body ?? '')}
+        {t('post.minutes')}
+      </p>
+      <h1 class="mt-2 text-4xl font-bold tracking-tight sm:text-5xl">{title}</h1>
+      <p class="mt-4 text-lg">{description}</p>
+      {tags.length > 0 && <ul class="mt-5 flex flex-wrap gap-2">{tags.map((tag) => <li><Tag>{tag}</Tag></li>)}</ul>}
+    </header>
+    <div class="prose mt-10">
+      <Content />
+    </div>
+  </article>
+</BaseLayout>

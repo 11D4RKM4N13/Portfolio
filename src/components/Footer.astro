@@ -1,0 +1,47 @@
+---
+import Icon from './Icon.astro';
+import { profile } from '../data/site';
+import { localizePath, useTranslations, type Lang } from '../i18n/ui';
+import { getPosts } from '../utils';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const hasPosts = (await getPosts(lang)).length > 0;
+const year = new Date().getFullYear();
+---
+
+<footer class="border-t border-zinc-200 dark:border-zinc-800">
+  <div
+    class="mx-auto flex max-w-5xl flex-col items-center justify-between gap-4 px-4 py-8 text-sm text-zinc-500 sm:flex-row sm:px-6 dark:text-zinc-400"
+  >
+    <p>© {year} {profile.name}. {t('footer.made')}</p>
+    <div class="flex items-center gap-2">
+      {
+        profile.socials.map((s) => (
+          <a
+            href={s.href}
+            target={s.href.startsWith('http') ? '_blank' : undefined}
+            rel="noopener noreferrer"
+            class="rounded-lg p-2 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-zinc-50"
+            aria-label={s.label}
+          >
+            <Icon name={s.icon} />
+          </a>
+        ))
+      }
+      {
+        hasPosts && (
+          <a
+            href={localizePath('/rss.xml', lang)}
+            class="rounded-lg px-2 py-1 font-mono text-xs transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-zinc-50"
+          >
+            RSS
+          </a>
+        )
+      }
+    </div>
+  </div>
+</footer>

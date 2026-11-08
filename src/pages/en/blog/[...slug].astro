@@ -1,0 +1,10 @@
+---
+import BlogPost from '../../../components/pages/BlogPost.astro';
+import { postPaths } from '../../../utils';
+
+export async function getStaticPaths() {
+  return postPaths('en');
+}
+---
+
+<BlogPost {...Astro.props} />

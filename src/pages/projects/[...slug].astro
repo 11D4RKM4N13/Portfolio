@@ -1,0 +1,10 @@
+---
+import ProjectDetail from '../../components/pages/ProjectDetail.astro';
+import { projectPaths } from '../../utils';
+
+export async function getStaticPaths() {
+  return projectPaths('es');
+}
+---
+
+<ProjectDetail {...Astro.props} />
