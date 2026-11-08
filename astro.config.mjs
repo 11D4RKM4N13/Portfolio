@@ -11,6 +11,9 @@ const hasPosts = globSync('src/content/blog/**/*.md').length > 0;
 export default defineConfig({
   // URL pública del sitio (GitHub Pages). Necesaria para sitemap, RSS y hreflang
   site: 'https://11d4rkm4n13.github.io',
+  // El repositorio se llama "Portfolio", así que GitHub Pages lo sirve en /Portfolio/.
+  // Si algún día usas un dominio propio o el repo <usuario>.github.io, borra esta línea.
+  base: '/Portfolio',
   i18n: {
     defaultLocale: 'es',
     locales: ['es', 'en'],
@@ -19,7 +22,7 @@ export default defineConfig({
   integrations: [
     sitemap({
       i18n: { defaultLocale: 'es', locales: { es: 'es-CO', en: 'en-US' } },
-      filter: (page) => hasPosts || !/^\/(en\/)?blog\//.test(new URL(page).pathname),
+      filter: (page) => hasPosts || !/^\/Portfolio\/(en\/)?blog\//.test(new URL(page).pathname),
     }),
   ],
   vite: {

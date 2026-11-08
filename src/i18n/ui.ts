@@ -122,14 +122,23 @@ export function useTranslations(lang: Lang) {
   return (key: UiKey) => ui[lang][key] ?? ui[defaultLang][key];
 }
 
-/** Convierte una ruta sin idioma ("/projects") en la ruta del idioma dado ("/en/projects"). */
-export function localizePath(path: string, lang: Lang) {
-  if (lang === defaultLang) return path;
-  return path === '/' ? `/${lang}/` : `/${lang}${path}`;
+// Ruta base del sitio (`base` en astro.config.mjs), sin barra final: "/Portfolio" o "".
+const BASE = import.meta.env.BASE_URL.replace(/\/$/, '');
+
+/** Antepone la ruta base: "/favicon.svg" → "/Portfolio/favicon.svg". */
+export function withBase(path: string) {
+  return `${BASE}${path}`;
 }
 
-/** Quita el prefijo de idioma de una ruta: "/en/projects" → "/projects". */
+/** Convierte una ruta sin idioma ("/projects") en la ruta real del idioma dado ("/Portfolio/en/projects"). */
+export function localizePath(path: string, lang: Lang) {
+  if (lang === defaultLang) return withBase(path);
+  return withBase(path === '/' ? `/${lang}/` : `/${lang}${path}`);
+}
+
+/** Quita la ruta base y el prefijo de idioma: "/Portfolio/en/projects" → "/projects". */
 export function stripLang(pathname: string) {
-  const stripped = pathname.replace(/^\/en(?=\/|$)/, '');
+  const noBase = BASE && pathname.startsWith(BASE) ? pathname.slice(BASE.length) : pathname;
+  const stripped = noBase.replace(/^\/en(?=\/|$)/, '');
   return stripped === '' ? '/' : stripped;
 }

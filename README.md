@@ -85,9 +85,9 @@ draft: false   # true = solo visible en desarrollo
 
 ## Despliegue
 
-El sitio se publica en **https://11d4rkm4n13.github.io** con GitHub Pages.
+El sitio se publica en **https://11d4rkm4n13.github.io/Portfolio/** con GitHub Pages (`base: '/Portfolio'` en `astro.config.mjs`).
 Cada `git push` a `main` ejecuta `.github/workflows/deploy.yml`, que compila el sitio y lo publica
 automáticamente (tarda 1–2 minutos). El progreso se ve en la pestaña **Actions** del repositorio.
 
 Para usar un dominio propio: agrégalo en *Settings → Pages → Custom domain*, crea `public/CNAME`
-con el dominio y actualiza `site` en `astro.config.mjs` y la URL de `public/robots.txt`.
+con el dominio, borra `base` y actualiza `site` en `astro.config.mjs` y la URL de `public/robots.txt`.

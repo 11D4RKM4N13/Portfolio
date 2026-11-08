@@ -4,7 +4,7 @@ import { ClientRouter } from 'astro:transitions';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import { content, profile } from '../data/site';
-import { languages, localizePath, stripLang, locales, useTranslations, type Lang } from '../i18n/ui';
+import { languages, localizePath, stripLang, locales, useTranslations, withBase, type Lang } from '../i18n/ui';
 
 interface Props {
   lang: Lang;
@@ -47,10 +47,10 @@ const alternates =
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
     {alternates.map((a) => <link rel="alternate" hreflang={a.hreflang} href={a.href} />)}
-    {alternatePath !== null && <link rel="alternate" hreflang="x-default" href={absolute(alternatePath)} />}
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="icon" href="/favicon.ico" />
-    <link rel="sitemap" href="/sitemap-index.xml" />
+    {alternatePath !== null && <link rel="alternate" hreflang="x-default" href={absolute(localizePath(alternatePath, 'es'))} />}
+    <link rel="icon" type="image/svg+xml" href={withBase('/favicon.svg')} />
+    <link rel="icon" href={withBase('/favicon.ico')} />
+    <link rel="sitemap" href={withBase('/sitemap-index.xml')} />
     <link rel="alternate" type="application/rss+xml" title={`${t('rss.title')} ${profile.name}`} href={localizePath('/rss.xml', lang)} />
 
     <meta property="og:type" content={type} />

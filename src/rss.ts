@@ -1,7 +1,7 @@
 import rss from '@astrojs/rss';
 import type { APIContext } from 'astro';
 import { content, profile } from './data/site';
-import { localizePath, useTranslations, type Lang } from './i18n/ui';
+import { localizePath, useTranslations, withBase, type Lang } from './i18n/ui';
 import { entrySlug, getPosts } from './utils';
 
 export async function buildRss(context: APIContext, lang: Lang) {
@@ -10,7 +10,7 @@ export async function buildRss(context: APIContext, lang: Lang) {
   return rss({
     title: `${t('rss.title')} ${profile.name}`,
     description: content[lang].description,
-    site: context.site!,
+    site: new URL(withBase('/'), context.site).href,
     items: posts.map((post) => ({
       title: post.data.title,
       description: post.data.description,
