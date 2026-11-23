@@ -22,13 +22,26 @@ const projects = defineCollection({
 
 const blog = defineCollection({
   loader: glob({ pattern: '**/*.md', base: './src/content/blog' }),
-  schema: z.object({
-    title: z.string(),
-    description: z.string(),
-    date: z.coerce.date(),
-    tags: z.array(z.string()).default([]),
-    draft: z.boolean().default(false),
-  }),
+  schema: z
+    .object({
+      title: z.string(),
+      description: z.string(),
+      date: z.coerce.date(),
+      // Fecha de la última revisión importante (se muestra junto a la de publicación)
+      updated: z.coerce.date().optional(),
+      // Temas del artículo: Kotlin, POO, Java, Fundamentos...
+      tags: z.array(z.string()).default([]),
+      level: z.enum(['beginner', 'intermediate', 'advanced']).optional(),
+      // Serie de artículos que se leen en orden. El nombre debe ser idéntico en
+      // todos los artículos de la serie (dentro de cada idioma).
+      series: z.string().optional(),
+      seriesOrder: z.number().int().positive().optional(),
+      draft: z.boolean().default(false),
+    })
+    .refine((data) => !data.series || data.seriesOrder, {
+      message: 'seriesOrder es obligatorio cuando el artículo pertenece a una serie',
+      path: ['seriesOrder'],
+    }),
 });
 
 export const collections = { projects, blog };

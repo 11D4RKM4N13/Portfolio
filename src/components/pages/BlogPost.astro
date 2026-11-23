@@ -4,7 +4,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import Icon from '../Icon.astro';
 import Tag from '../Tag.astro';
 import { localizePath, useTranslations, type Lang } from '../../i18n/ui';
-import { formatDate, readingMinutes } from '../../utils';
+import { entrySlug, formatDate, getSeriesPosts, readingMinutes } from '../../utils';
 
 interface Props {
   post: CollectionEntry<'blog'>;
@@ -14,7 +14,13 @@ interface Props {
 const { post, lang, alternatePath } = Astro.props;
 const t = useTranslations(lang);
 const { Content } = await render(post);
-const { title, description, date, tags } = post.data;
+const { title, description, date, updated, tags, level, series } = post.data;
+
+const seriesPosts = await getSeriesPosts(post, lang);
+const index = seriesPosts.findIndex((p) => p.id === post.id);
+const prev = index > 0 ? seriesPosts[index - 1] : undefined;
+const next = index >= 0 ? seriesPosts[index + 1] : undefined;
+const postHref = (p: CollectionEntry<'blog'>) => localizePath(`/blog/${entrySlug(p)}`, lang);
 ---
 
 <BaseLayout lang={lang} title={title} description={description} type="article" alternatePath={alternatePath}>
@@ -30,13 +36,69 @@ const { title, description, date, tags } = post.data;
       <p class="font-mono text-sm text-zinc-500">
         <time datetime={date.toISOString()}>{formatDate(date, lang)}</time> · {readingMinutes(post.body ?? '')}
         {t('post.minutes')}
+        {level && <> · {t(`level.${level}`)}</>}
       </p>
+      {
+        updated && (
+          <p class="mt-1 font-mono text-xs text-zinc-500">
+            {t('post.updated')} <time datetime={updated.toISOString()}>{formatDate(updated, lang)}</time>
+          </p>
+        )
+      }
       <h1 class="mt-2 text-4xl font-bold tracking-tight sm:text-5xl">{title}</h1>
       <p class="mt-4 text-lg">{description}</p>
       {tags.length > 0 && <ul class="mt-5 flex flex-wrap gap-2">{tags.map((tag) => <li><Tag>{tag}</Tag></li>)}</ul>}
     </header>
+
+    {
+      seriesPosts.length > 1 && (
+        <nav aria-label={t('post.series')} class="mt-8 rounded-xl border border-zinc-200 p-5 dark:border-zinc-800">
+          <p class="font-mono text-sm text-zinc-500">
+            {t('post.series')} · {t('post.part')} {index + 1} {t('post.of')} {seriesPosts.length}
+          </p>
+          <p class="mt-1 font-semibold text-zinc-900 dark:text-zinc-50">{series}</p>
+          <ol class="mt-3 list-decimal space-y-1 pl-6 text-sm">
+            {seriesPosts.map((p) => (
+              <li>
+                {p.id === post.id ? (
+                  <span aria-current="page" class="font-medium text-zinc-900 dark:text-zinc-50">{p.data.title}</span>
+                ) : (
+                  <a href={postHref(p)} class="hover:text-accent-600 dark:hover:text-accent-400">{p.data.title}</a>
+                )}
+              </li>
+            ))}
+          </ol>
+        </nav>
+      )
+    }
+
     <div class="prose mt-10">
       <Content />
     </div>
+
+    {
+      (prev || next) && (
+        <nav class="mt-16 grid gap-4 border-t border-zinc-200 pt-8 sm:grid-cols-2 dark:border-zinc-800">
+          {prev ? (
+            <a href={postHref(prev)} class="group rounded-xl border border-zinc-200 p-4 hover:border-accent-500 dark:border-zinc-800">
+              <span class="text-sm text-zinc-500">{t('post.prev')}</span>
+              <span class="mt-1 block font-semibold text-zinc-900 group-hover:text-accent-600 dark:text-zinc-50 dark:group-hover:text-accent-400">
+                {prev.data.title}
+              </span>
+            </a>
+          ) : (
+            <span class="hidden sm:block" />
+          )}
+          {next && (
+            <a href={postHref(next)} class="group rounded-xl border border-zinc-200 p-4 text-right hover:border-accent-500 dark:border-zinc-800">
+              <span class="text-sm text-zinc-500">{t('post.next')}</span>
+              <span class="mt-1 block font-semibold text-zinc-900 group-hover:text-accent-600 dark:text-zinc-50 dark:group-hover:text-accent-400">
+                {next.data.title}
+              </span>
+            </a>
+          )}
+        </nav>
+      )
+    }
   </article>
 </BaseLayout>

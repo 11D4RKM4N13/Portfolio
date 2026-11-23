@@ -25,6 +25,12 @@ export default defineConfig({
       filter: (page) => hasPosts || !/^\/Portfolio\/(en\/)?blog\//.test(new URL(page).pathname),
     }),
   ],
+  // Resaltado de código: tema claro u oscuro según el tema del sitio (ver global.css)
+  markdown: {
+    shikiConfig: {
+      themes: { light: 'github-light', dark: 'github-dark' },
+    },
+  },
   vite: {
     plugins: [tailwindcss()],
   },

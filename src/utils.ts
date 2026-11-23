@@ -25,6 +25,38 @@ export async function getPosts(lang: Lang) {
   return posts.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
 }
 
+/** Artículos de la misma serie que `post` (mismo idioma), en orden de lectura. */
+export async function getSeriesPosts(post: CollectionEntry<'blog'>, lang: Lang) {
+  const { series } = post.data;
+  if (!series) return [];
+  const posts = (await getPosts(lang)).filter((p) => p.data.series === series);
+  return posts.sort((a, b) => (a.data.seriesOrder ?? 0) - (b.data.seriesOrder ?? 0));
+}
+
+/**
+ * Para los listados: cada serie aparece una sola vez, en la posición de su artículo
+ * más reciente, con todas sus partes en orden de lectura. `posts` debe venir de getPosts.
+ */
+export function groupSeries(posts: CollectionEntry<'blog'>[]) {
+  const seen = new Set<string>();
+  const items: { post: CollectionEntry<'blog'>; parts: CollectionEntry<'blog'>[] }[] = [];
+  for (const post of posts) {
+    const { series } = post.data;
+    if (!series) {
+      items.push({ post, parts: [] });
+      continue;
+    }
+    if (seen.has(series)) continue;
+    seen.add(series);
+    const parts = posts
+      .filter((p) => p.data.series === series)
+      .sort((a, b) => (a.data.seriesOrder ?? 0) - (b.data.seriesOrder ?? 0));
+    // Una serie con una sola parte publicada se muestra como un artículo normal
+    items.push({ post, parts: parts.length > 1 ? parts : [] });
+  }
+  return items;
+}
+
 export async function getProjects(lang: Lang) {
   const projects = await getCollection('projects', ({ id }) => id.startsWith(`${lang}/`));
   return projects.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
